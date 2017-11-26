@@ -20,9 +20,9 @@ build:
 	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MAJOR}
 	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MINOR}
 
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION}-armhf
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MAJOR}-armhf
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MINOR}-armhf
+	docker tag ${TAG_NAME}:${VERSION_TYPE}-armhf ${TAG_NAME}:${VERSION}-armhf
+	docker tag ${TAG_NAME}:${VERSION_TYPE}-armhf ${TAG_NAME}:${VERSION_MAJOR}-armhf
+	docker tag ${TAG_NAME}:${VERSION_TYPE}-armhf ${TAG_NAME}:${VERSION_MINOR}-armhf
 .PHONY: build
 
 publish:
