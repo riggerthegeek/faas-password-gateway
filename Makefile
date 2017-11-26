@@ -13,16 +13,16 @@ endif
 
 build:
 # 	Build the container
-	docker build --build-arg NGINX_VERSION=${VERSION} --file ./Dockerfile --tag ${TAG_NAME}:${VERSION_TYPE} .
-	docker build --file ./template/Dockerfile.armhf --tag ${TAG_NAME}:${VERSION_TYPE}-armhf .
+	docker build --file ./Dockerfile --tag ${TAG_NAME}:${VERSION_TYPE} .
+	docker build --file ./Dockerfile.armhf --tag ${TAG_NAME}:${VERSION_TYPE}-armhf .
 
 	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION}
 	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MAJOR}
 	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MINOR}
 
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}-armhf:${VERSION}-armhf
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}-armhf:${VERSION_MAJOR}-armhf
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}-armhf:${VERSION_MINOR}-armhf
+	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION}-armhf
+	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MAJOR}-armhf
+	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MINOR}-armhf
 .PHONY: build
 
 publish:
