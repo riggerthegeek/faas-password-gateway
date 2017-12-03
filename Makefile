@@ -1,4 +1,5 @@
 DOCKER_IMG ?= "faas-password-gateway"
+DOCKER_MANIFEST_URL ?= https://6582-88013053-gh.circle-artifacts.com/1/work/build/docker-linux-amd64
 DOCKER_USER ?= ""
 
 VERSION = "0.1.0"
@@ -12,27 +13,61 @@ TAG_NAME = "${DOCKER_USER}/${DOCKER_IMG}"
 endif
 
 build:
-# 	Build the container
-	docker build --file ./Dockerfile --tag ${TAG_NAME}:${VERSION_TYPE} .
-	docker build --file ./Dockerfile.armhf --tag ${TAG_NAME}:${VERSION_TYPE}-armhf .
-
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION}
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MAJOR}
-	docker tag ${TAG_NAME}:${VERSION_TYPE} ${TAG_NAME}:${VERSION_MINOR}
-
-	docker tag ${TAG_NAME}:${VERSION_TYPE}-armhf ${TAG_NAME}:${VERSION}-armhf
-	docker tag ${TAG_NAME}:${VERSION_TYPE}-armhf ${TAG_NAME}:${VERSION_MAJOR}-armhf
-	docker tag ${TAG_NAME}:${VERSION_TYPE}-armhf ${TAG_NAME}:${VERSION_MINOR}-armhf
+	@echo "Building latest Docker images"
+	docker build --file ./Dockerfile --tag ${TAG_NAME}:linux-amd64-${VERSION_TYPE} .
+	docker build --file ./Dockerfile.arm --tag ${TAG_NAME}:linux-arm-${VERSION_TYPE} .
 .PHONY: build
 
-publish:
-	docker push ${TAG_NAME}:${VERSION_TYPE}
-	docker push ${TAG_NAME}:${VERSION}
-	docker push ${TAG_NAME}:${VERSION_MAJOR}
-	docker push ${TAG_NAME}:${VERSION_MINOR}
+download-docker:
+	@echo "Downloading docker client with manifest command"
+	curl -L ${DOCKER_MANIFEST_URL} -o ./docker
+	chmod +x ./docker
+	./docker version
+.PHONY: download-docker
 
-	docker push ${TAG_NAME}:${VERSION_TYPE}-armhf
-	docker push ${TAG_NAME}:${VERSION}-armhf
-	docker push ${TAG_NAME}:${VERSION_MAJOR}-armhf
-	docker push ${TAG_NAME}:${VERSION_MINOR}-armhf
+publish:
+	./docker version || make download-docker
+
+	@echo "Tagging Docker images as v${VERSION}"
+	docker tag ${TAG_NAME}:linux-amd64-${VERSION_TYPE} ${TAG_NAME}:linux-amd64-${VERSION}
+	docker tag ${TAG_NAME}:linux-amd64-${VERSION_TYPE} ${TAG_NAME}:linux-amd64-${VERSION_MAJOR}
+	docker tag ${TAG_NAME}:linux-amd64-${VERSION_TYPE} ${TAG_NAME}:linux-amd64-${VERSION_MINOR}
+	docker tag ${TAG_NAME}:linux-arm-${VERSION_TYPE} ${TAG_NAME}:linux-arm-${VERSION}
+	docker tag ${TAG_NAME}:linux-arm-${VERSION_TYPE} ${TAG_NAME}:linux-arm-${VERSION_MAJOR}
+	docker tag ${TAG_NAME}:linux-arm-${VERSION_TYPE} ${TAG_NAME}:linux-arm-${VERSION_MINOR}
+
+	@echo "Pushing images to Docker"
+	docker push ${TAG_NAME}:linux-amd64-${VERSION_TYPE}
+	docker push ${TAG_NAME}:linux-amd64-${VERSION}
+	docker push ${TAG_NAME}:linux-amd64-${VERSION_MAJOR}
+	docker push ${TAG_NAME}:linux-amd64-${VERSION_MINOR}
+	docker push ${TAG_NAME}:linux-arm-${VERSION_TYPE}
+	docker push ${TAG_NAME}:linux-arm-${VERSION}
+	docker push ${TAG_NAME}:linux-arm-${VERSION_MAJOR}
+	docker push ${TAG_NAME}:linux-arm-${VERSION_MINOR}
+
+	@echo "Create Docker manifests"
+	./docker -D manifest create "${TAG_NAME}:${VERSION}" \
+		"${TAG_NAME}:linux-amd64-${VERSION}" \
+		"${TAG_NAME}:linux-arm-${VERSION}"
+	./docker -D manifest annotate "${TAG_NAME}:${VERSION}" "${TAG_NAME}:linux-arm-${VERSION}" --os=linux --arch=arm --variant=v6
+	./docker -D manifest push "${TAG_NAME}:${VERSION}"
+
+	./docker -D manifest create "${TAG_NAME}:${VERSION_MAJOR}" \
+		"${TAG_NAME}:linux-amd64-${VERSION_MAJOR}" \
+		"${TAG_NAME}:linux-arm-${VERSION_MAJOR}"
+	./docker -D manifest annotate "${TAG_NAME}:${VERSION_MAJOR}" "${TAG_NAME}:linux-arm-${VERSION_MAJOR}" --os=linux --arch=arm --variant=v6
+	./docker -D manifest push "${TAG_NAME}:${VERSION_MAJOR}"
+
+	./docker -D manifest create "${TAG_NAME}:${VERSION_MINOR}" \
+		"${TAG_NAME}:linux-amd64-${VERSION_MINOR}" \
+		"${TAG_NAME}:linux-arm-${VERSION_MINOR}"
+	./docker -D manifest annotate "${TAG_NAME}:${VERSION_MINOR}" "${TAG_NAME}:linux-arm-${VERSION_MINOR}" --os=linux --arch=arm --variant=v6
+	./docker -D manifest push "${TAG_NAME}:${VERSION_MINOR}"
+
+	./docker -D manifest create "${TAG_NAME}:${VERSION_TYPE}" \
+		"${TAG_NAME}:linux-amd64-${VERSION_TYPE}" \
+		"${TAG_NAME}:linux-arm-${VERSION_TYPE}"
+	./docker -D manifest annotate "${TAG_NAME}:${VERSION_TYPE}" "${TAG_NAME}:linux-arm-latest" --os=linux --arch=arm --variant=v6
+	./docker -D manifest push "${TAG_NAME}:${VERSION_TYPE}"
 .PHONY: publish
