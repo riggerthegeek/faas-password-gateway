@@ -1,7 +1,4 @@
-language: node_js
-
-node_js:
-- '8'
+language: bash
 
 sudo: required
 
@@ -11,8 +8,6 @@ services:
 before_install:
 - date
 - docker login --username=${DOCKER_USER} --password=${DOCKER_PASS}
-
-install:
 
 script:
 - make build
